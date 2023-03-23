@@ -18,9 +18,9 @@ const nextLeftNeighbor = (rotation) => {
 }
 
 // Get all neighboring coordinates in order
-const getAllNeighborsInOrder = (matrix, pos, prevPos=null) => {
+const getAllNeighborsInOrder = (matrix, pos, prevPos = null) => {
     let neighbors = [];
-    let rotation = [0, 0];
+    let rotation = [-1, -1];
     if (prevPos) {
         rotation = [prevPos[0] - pos[0], prevPos[1] - pos[1]];
     }
@@ -29,7 +29,6 @@ const getAllNeighborsInOrder = (matrix, pos, prevPos=null) => {
         // Rotate
         rotation = nextLeftNeighbor(rotation);
         neighbors.push([pos[0] + rotation[0], pos[1] + rotation[1]]);
-        // console.log(rotation);
     }
     // If there was a previous position, don't include it as a neighbor
     if (prevPos) {
@@ -56,4 +55,66 @@ const findNeighborsInOrder = (matrix, pos, prevPos) => {
     return realNeighbors;
 }
 
-console.log(findNeighborsInOrder(games.b1, [4, 5], [5,6]));
+const createEmptyMatrix = (rows, columns) => {
+    let matrix = Array(rows);
+    for (let i = 0; i < rows; i++) {
+        matrix[i] = Array(columns);
+        for (let j = 0; j < columns; j++) {
+            matrix[i][j] = 0;
+        }
+    }
+    return matrix;
+}
+
+const clearMatrix = (matrix) => {
+    for (let i = 0; i < matrix.length; i++) {
+        for (let j = 0; j < matrix[0].length; j++) {
+            matrix[i][j] = 0;
+        }
+    }
+}
+
+const findPath = (matrix, startPos) => {
+    let visited = createEmptyMatrix(matrix.length, matrix[0].length);
+    let queue = Array(0);
+
+    function searchNext(prevPos, pos, start = false) {
+        // If reached the starting position (found path)
+        if (!start && cmp(pos, startPos)) {
+            queue.push(pos);
+            console.log("Found path:");
+            console.log(queue);
+            return queue;
+        }
+        // If we have been visited already, also return
+        if (visited[pos[0]][pos[1]] == 1) {
+            return null;
+        }
+        // Otherwise, add ourselves to the queue, and mark as visited
+        queue.push(pos);
+        visited[pos[0]][pos[1]] = 1;
+        // Search for a path from each neighbor
+        let neighbors = findNeighborsInOrder(matrix, pos, prevPos);
+        for (let i = 0; i < neighbors.length; i++) {
+            let neighbor = neighbors[i];
+            if (searchNext(pos, neighbor)) {
+                return queue;
+            };
+        }
+        queue.pop();
+        return null;
+    }
+
+    matrix[startPos[0]][startPos[1]] = 1;
+    // Search new paths formed
+    let neighbors = findNeighborsInOrder(matrix, startPos, null);
+    console.log(neighbors);
+    // find path formed by each neighbor
+    for (let i = 0; i < neighbors.length; i++) {
+        clearMatrix(visited);
+        queue = [startPos];
+        searchNext(startPos, neighbors[i]);
+    }
+}
+
+findPath(games.b1, [0,3]);
